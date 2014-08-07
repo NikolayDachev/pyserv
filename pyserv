@@ -64,6 +64,9 @@ def jadm_client(HOST, PORT, sendData):
       data = s.recv(1024)
 
 def aes(data, secret ,encdec):
+   '''
+      Original src: http://www.codekoala.com/posts/aes-encryption-python-using-pycrypto/
+   '''
    # the block size for the cipher object; must be 16, 24, or 32 for AES
    BLOCK_SIZE = 32
 
