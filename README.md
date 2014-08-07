@@ -11,7 +11,7 @@ password should be 16 simbols, if is not pyserv add 0's or cut it
 
 Client: 
 
-:> ./pyserv -c 127.0.0.1 1234 TEST MSG 
+:> ./pyserv -c 127.0.0.1 1234 TEST MSG \n
 server password: sdf 
 ERROR: server password should be 16 symbols, current is: 3 
 server password: sdfdfssdffdsdfsfdfsddsdfsfdsfsdfdsff 
