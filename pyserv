@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+
+import socket
+from Crypto.Cipher import AES
+import base64
+import sys
+
+def jadm_server(HOST, PORT):
+
+# Enter AES encrypt password
+   secret = raw_input('server password: ')
+   if len(secret) < 16:
+      toadd = 16 - len(secret)
+      while toadd != 0:
+         secret = secret + '0'
+         toadd -= 1
+   
+   if len(secret) > 16:
+      secret = secret[:16]
+
+   print "Please use this server password: %s" % secret
+
+   recvlist = []
+
+   s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+   s.bind((HOST, PORT))
+   s.listen(1)
+
+   conn, addr = s.accept()
+   print('Connected by', addr)
+
+   while True:
+# REC
+      data = conn.recv(1024)
+      print data
+      if not data: break
+# DEC 
+      recvlist.append(aes(data, secret, 'dec'))
+      conn.send(data)
+   conn.close()
+
+   return recvlist 
+
+def jadm_client(HOST, PORT, sendData):
+
+# ENC
+   while True:
+      secret = raw_input('server password: ')
+      if len(secret) != 16:
+         print "ERROR: server password should be 16 symbols, current is: %s" % len(secret)
+         continue
+      else:
+         break
+   try:
+      s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      s.connect((HOST, PORT))
+   except socket.error:
+      print "No connection to %s:%s" % (HOST, PORT)
+      return False
+
+   for i in sendData:
+# ENC and SEND
+      s.send(aes(i, secret, 'enc'))
+      data = s.recv(1024)
+
+def aes(data, secret ,encdec):
+   # the block size for the cipher object; must be 16, 24, or 32 for AES
+   BLOCK_SIZE = 32
+
+   # the character used for padding--with a block cipher such as AES, the value
+   # you encrypt must be a multiple of BLOCK_SIZE in length.  This character is
+   # used to ensure that your value is always a multiple of BLOCK_SIZE
+   PADDING = '{'
+
+   # one-liner to sufficiently pad the text to be encrypted
+   pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * PADDING
+
+   # one-liners to encrypt/encode and decrypt/decode a string
+   # encrypt with AES, encode with base64
+   EncodeAES = lambda c, s: base64.b64encode(c.encrypt(pad(s)))
+   DecodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
+
+   # create a cipher object using the random secret
+   cipher = AES.new(secret)
+
+   if encdec == 'enc':
+      # encode a string
+      encoded = EncodeAES(cipher, data)
+      return encoded
+
+   if encdec == 'dec':
+      # decode the encoded string
+      decoded = DecodeAES(cipher, data)
+      return decoded
+
+
+### MAIN ###
+
+if sys.argv[1] == '-s':
+    recvData = jadm_server(sys.argv[2], int(sys.argv[3]))
+    print recvData
+
+if sys.argv[1] == '-c':
+
+   sendData = []
+   for x in sys.argv[4:]:
+      sendData.append(x)
+   jadm_client(sys.argv[2], int(sys.argv[3]), sendData)
